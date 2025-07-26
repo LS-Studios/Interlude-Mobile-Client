@@ -8,6 +8,8 @@ import androidx.compose.ui.unit.TextUnit
 
 object Constants {
 
+    const val BASE_URL = "http://100.99.70.140:8080"
+
     // Padding
     val PaddingXXSmall: Dp = 2.dp
     val PaddingXSmall: Dp = 4.dp

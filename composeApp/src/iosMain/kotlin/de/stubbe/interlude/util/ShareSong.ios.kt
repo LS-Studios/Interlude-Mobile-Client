@@ -14,15 +14,15 @@ import platform.UIKit.popoverPresentationController
 
 @OptIn(ExperimentalForeignApi::class)
 actual fun shareSong(link: ConvertedLink, context: Any?) {
-    val url = NSURL.URLWithString(link.songImageUrl) ?: return
+    val url = NSURL.URLWithString(link.artwork) ?: return
 
     val data = NSData.dataWithContentsOfURL(url) ?: return
     val image = UIImage(data = data)
-    val text = "${link.songName} – ${link.link}"
+    val text = "${link.displayName} – ${link.url}"
 
     val activityItems = mutableListOf<Any>()
 
-    image?.let { activityItems.add(it) }
+    image.let { activityItems.add(it) }
     activityItems.add(text)
 
     val activityVC = UIActivityViewController(
@@ -39,5 +39,5 @@ actual fun shareSong(link: ConvertedLink, context: Any?) {
 }
 
 actual fun copySongToClipboard(convertedLink: ConvertedLink, context: Any?) {
-    UIPasteboard.generalPasteboard.string = convertedLink.link
+    UIPasteboard.generalPasteboard.string = convertedLink.url
 }

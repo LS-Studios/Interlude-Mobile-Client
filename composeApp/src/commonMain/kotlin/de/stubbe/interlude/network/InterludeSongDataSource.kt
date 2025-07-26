@@ -1,29 +1,37 @@
-package de.stubbe.interlude.repository
+package de.stubbe.interlude.network
 
+import de.stubbe.interlude.config.BuildKonfig
 import de.stubbe.interlude.network.dto.ConvertedLinkDto
+import de.stubbe.interlude.network.dto.ConvertedLinksDto
+import de.stubbe.interlude.network.dto.ProviderDto
 import de.stubbe.interlude.network.model.DataError
-import de.stubbe.interlude.network.safeCall
+import de.stubbe.interlude.network.model.Result
+import de.stubbe.interlude.ui.theme.Constants
 import io.ktor.client.HttpClient
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import io.ktor.http.parameters
+import io.ktor.client.request.parameter
 
-class InterludeNetworkRepository(
-    val client: HttpClient
+class InterludeSongDataSource(
+    private val client: HttpClient
 ) {
 
-    suspend fun convert(
-        link: String,
-        platform: String
-    ): Result<List<ConvertedLinkDto>, DataError.Remote> = safeCall<List<ConvertedLinkDto>> {
-        client.get {
-            parameters {
-                append("link", link)
-                append("platform", platform)
-            }
-            contentType(ContentType.Application.Json)
+    suspend fun getAvailablePlatforms(): Result<List<ProviderDto>, DataError.Remote> = safeCall<List<ProviderDto>> {
+        client.get(
+            urlString = "${Constants.BASE_URL}/platforms"
+        ) {
+            bearerAuth(BuildKonfig.API_TOKEN) //TODO encode to base64
+        }
+    }
 
+    suspend fun convert(
+        link: String
+    ): Result<ConvertedLinksDto, DataError.Remote> = safeCall<ConvertedLinksDto> {
+        client.get(
+            urlString = "${Constants.BASE_URL}/convert"
+        ) {
+            parameter("link", link)
+            bearerAuth(BuildKonfig.API_TOKEN)
         }
     }
 

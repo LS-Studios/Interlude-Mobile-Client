@@ -1,2 +1,3 @@
-package de.stubbe.interlude.network.model 
+package de.stubbe.interlude.network.model
 
+interface Error

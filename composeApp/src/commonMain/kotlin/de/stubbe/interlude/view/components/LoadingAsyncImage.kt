@@ -40,6 +40,7 @@ fun LoadingAsyncImage(
     fallback: Painter? = null,
     error: Painter? = null,
     contentScale: ContentScale = ContentScale.Fit,
+    alwaysUseColorFilter: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     var state by remember { mutableStateOf<AsyncImagePainter.State?>(null) }
@@ -67,9 +68,11 @@ fun LoadingAsyncImage(
                     error = error,
                     placeholder = painterResource(Res.drawable.ic_image),
                     contentScale = contentScale,
-                    colorFilter = when (state) {
-                        is AsyncImagePainter.State.Success -> null
-                        else -> ColorFilter.tint(nonImageColor)
+                    colorFilter = if (alwaysUseColorFilter)
+                            ColorFilter.tint(nonImageColor)
+                        else when (state) {
+                            is AsyncImagePainter.State.Success -> null
+                            else -> ColorFilter.tint(nonImageColor)
                     },
                 )
             }

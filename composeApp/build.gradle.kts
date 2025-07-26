@@ -1,6 +1,6 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -8,13 +8,20 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.jetbrains.kotlin.serialization)
+
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
+
+    alias(libs.plugins.wire)
+
+    alias(libs.plugins.buildkonfig)
 }
 
 kotlin {
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
     
@@ -27,6 +34,18 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
         }
+    }
+
+    room {
+        schemaDirectory("$projectDir/schemas")
+    }
+
+    wire {
+        sourcePath {
+            srcDir("src/commonMain/proto")
+        }
+
+        kotlin {}
     }
     
     sourceSets {
@@ -62,9 +81,21 @@ kotlin {
             implementation(compose.materialIconsExtended)
             implementation(libs.material.icons.core)
             implementation(libs.bundles.coil)
+
+            implementation(libs.bundles.ktor)
+            implementation(libs.ktorfit)
+
+            implementation(libs.compose.shimmer)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+        }
+
+        dependencies {
+            add("kspAndroid", libs.androidx.room.compiler)
+            add("kspIosSimulatorArm64", libs.androidx.room.compiler)
+            add("kspIosX64", libs.androidx.room.compiler)
+            add("kspIosArm64", libs.androidx.room.compiler)
         }
     }
 }
@@ -85,14 +116,17 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    buildFeatures {
+        buildConfig = true
+    }
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
@@ -100,3 +134,22 @@ dependencies {
     debugImplementation(compose.uiTooling)
 }
 
+val secretsFile = rootProject.file("secrets.properties")
+val secrets = Properties().apply {
+    if (secretsFile.exists()) {
+        load(secretsFile.inputStream())
+    }
+}
+
+
+buildkonfig {
+    packageName = "de.stubbe.interlude.config"
+
+    defaultConfigs {
+        buildConfigField(
+            com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
+            "API_TOKEN",
+            value = secrets.getProperty("API_TOKEN") ?: ""
+        )
+    }
+}

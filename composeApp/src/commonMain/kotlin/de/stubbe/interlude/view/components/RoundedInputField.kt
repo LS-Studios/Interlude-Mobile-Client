@@ -35,16 +35,7 @@ fun RoundedInputField(
                 color = unselectedColor
             )
         },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Colors.Border,
-            unfocusedBorderColor = Colors.Border,
-            focusedTextColor = Colors.Text,
-            unfocusedTextColor = Colors.Text,
-            cursorColor = Colors.Accent,
-            selectionColors = Colors.SelectionColor,
-            focusedContainerColor = Colors.Main,
-            unfocusedContainerColor = Colors.Main
-        ),
+        colors = Colors.getTextFieldColors(),
         shape = Constants.Shape.Rounded.Small,
         maxLines = maxLines,
     )

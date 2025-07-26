@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.outlined.Bookmark
 import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.stubbe.interlude.model.ConvertedLink
+import de.stubbe.interlude.model.ConvertedLinksState
 import de.stubbe.interlude.ui.theme.Colors
 import de.stubbe.interlude.ui.theme.Constants
 import de.stubbe.interlude.util.copySongToClipboard
@@ -53,7 +57,7 @@ import org.jetbrains.compose.resources.painterResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConvertedLinksDialog(
-    convertedLinks: List<ConvertedLink>,
+    convertedLinksState: ConvertedLinksState,
     onDismiss: () -> Unit = {}
 ) {
     val dialogState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -74,24 +78,49 @@ fun ConvertedLinksDialog(
                 .padding(Constants.PaddingLarge),
             verticalArrangement = Arrangement.spacedBy(Constants.SpacerLarge)
         ) {
-            if (convertedLinks.isEmpty()) {
-                Text(
+            if (convertedLinksState.isLoading) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    text = "Click convert to see the results",
-                    textAlign = TextAlign.Center,
-                    color = Colors.Text,
-                    fontSize = Constants.FontSizeMedium
-                )
-            }
-
-            convertedLinks.forEach { convertedLink ->
-                ConvertedLinkItem(
-                    convertedLink = convertedLink
+                        .fillMaxWidth()
+                        .padding(Constants.PaddingLarge),
+                    contentAlignment = Alignment.Center
                 ) {
-                    coroutineScope.launch {
-                        copySongToClipboard(convertedLink, context)
+                    CircularProgressIndicator(
+                        color = Colors.Text
+                    )
+                }
+            } else {
+                val convertedLinks = remember(convertedLinksState) { convertedLinksState.convertedLinks }
+
+                if (convertedLinks.isEmpty()) {
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        text = "Click convert to see the results",
+                        textAlign = TextAlign.Center,
+                        color = Colors.Text,
+                        fontSize = Constants.FontSizeMedium
+                    )
+                }
+
+                convertedLinks.forEach { convertedLink ->
+                    ConvertedLinkItem(
+                        convertedLink = convertedLink
+                    ) {
+                        coroutineScope.launch {
+                            copySongToClipboard(convertedLink, context)
+                        }
                     }
+                }
+
+                if (convertedLinksState.errorMessage != null) {
+                    ErrorDialog(
+                        message = convertedLinksState.errorMessage,
+                        confirmText = "Ok",
+                        onDismiss = {
+
+                        }
+                    )
                 }
             }
         }
@@ -124,8 +153,8 @@ private fun ConvertedLinkItem(
         horizontalArrangement = Arrangement.spacedBy(Constants.SpacerLarge)
     ) {
         LoadingAsyncImage(
-            imageUrl = convertedLink.songImageUrl,
-            contentDescription = convertedLink.platform.name,
+            imageUrl = convertedLink.artwork,
+            contentDescription = convertedLink.provider.name,
             nonImageColor = Colors.Text,
             error = painterResource(Res.drawable.ic_image_error),
             contentScale = ContentScale.Crop,
@@ -139,7 +168,7 @@ private fun ConvertedLinkItem(
                 .weight(1f)
         ) {
             Text(
-                text = convertedLink.songName,
+                text = convertedLink.displayName,
                 fontSize = Constants.FontSizeMedium,
                 color = Colors.Text,
                 textAlign = TextAlign.Start,
@@ -151,17 +180,17 @@ private fun ConvertedLinkItem(
                 horizontalArrangement = Arrangement.spacedBy(Constants.SpacerMedium)
             ) {
                 LoadingAsyncImage(
-                    imageUrl = convertedLink.platform.iconUrl,
-                    contentDescription = convertedLink.platform.name,
+                    imageUrl = convertedLink.provider.iconUrl,
+                    contentDescription = convertedLink.provider.name,
                     nonImageColor = Colors.Text,
-                    fallback = painterResource(convertedLink.platform.fallbackResource),
-                    error = painterResource(convertedLink.platform.fallbackResource),
+                    error = painterResource(Res.drawable.ic_image_error),
+                    alwaysUseColorFilter = true,
                     modifier = Modifier
                         .size(20.dp)
                 )
 
                 Text(
-                    text = convertedLink.platform.name,
+                    text = convertedLink.provider.getFormattedName(),
                     fontSize = Constants.FontSizeMedium,
                     color = Colors.Text,
                     textAlign = TextAlign.Start,
@@ -172,17 +201,15 @@ private fun ConvertedLinkItem(
             }
         }
 
-        Row {
-            IconButton(
-                onClick = {
-                    shareSong(convertedLink, context)
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = "Send link",
-                )
+        IconButton(
+            onClick = {
+                shareSong(convertedLink, context)
             }
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Send,
+                contentDescription = "Send link",
+            )
         }
     }
 }

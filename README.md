@@ -1,6 +1,6 @@
 Calls:
 
-/convert?plattform="uid"
+/convert?link="lin"&platform="uid"
 -> { songName: "", {spotifyUID}: "link", {youtubeUID}: "link", ...} }
 
 - settings (change theme, language, clear history, enable history)

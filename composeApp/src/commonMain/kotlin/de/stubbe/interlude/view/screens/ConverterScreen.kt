@@ -4,23 +4,19 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -32,14 +28,18 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import de.stubbe.interlude.model.Platform
+import de.stubbe.interlude.model.Provider
 import de.stubbe.interlude.ui.theme.Colors
 import de.stubbe.interlude.ui.theme.Constants
 import de.stubbe.interlude.view.components.LoadingAsyncImage
 import de.stubbe.interlude.view.components.NonlazyGrid
 import de.stubbe.interlude.view.components.RoundedInputField
 import de.stubbe.interlude.view.dialogs.ConvertedLinksDialog
+import de.stubbe.interlude.view.dialogs.ErrorDialog
 import de.stubbe.interlude.viewmodel.ConverterScreenViewModel
+import interlude.composeapp.generated.resources.Res
+import interlude.composeapp.generated.resources.ic_image
+import interlude.composeapp.generated.resources.ic_image_error
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -48,8 +48,8 @@ fun ConverterScreen() {
     val viewModel: ConverterScreenViewModel = koinViewModel()
 
     val link by viewModel.link.collectAsState()
-    val availablePlatforms by viewModel.availablePlatforms.collectAsState()
-    val convertedLinks by viewModel.convertedLinks.collectAsState()
+    val availablePlatformsState by viewModel.availablePlatformsState.collectAsState()
+    val convertedLinksState by viewModel.convertedLinksState.collectAsState()
     val linkDialogIsOpen by viewModel.linkDialogIsOpen.collectAsState()
 
     val uriHandler = LocalUriHandler.current
@@ -80,9 +80,7 @@ fun ConverterScreen() {
                 viewModel.openLinkDialog()
             },
             shape = Constants.Shape.Rounded.Small,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Colors.Accent
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = Colors.Accent)
         ) {
             Text(
                 modifier = Modifier
@@ -95,25 +93,48 @@ fun ConverterScreen() {
 
         SectionHeader("Available Platforms")
 
-        NonlazyGrid(
-            columns = 2,
-            itemCount = availablePlatforms.size,
-            verticalItemPadding = Constants.SpacerLarge,
-            horizontalItemPadding = Constants.SpacerLarge
-        ) { platformIndex ->
-            val platform = availablePlatforms[platformIndex]
-
-            PlatformItem(
-                platform = platform
+        if (availablePlatformsState.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Constants.PaddingLarge),
+                contentAlignment = Alignment.Center
             ) {
-                uriHandler.openUri(platform.url)
+                CircularProgressIndicator(
+                    color = Colors.Text
+                )
+            }
+        } else {
+            NonlazyGrid(
+                columns = 2,
+                itemCount = availablePlatformsState.providers.size,
+                verticalItemPadding = Constants.SpacerLarge,
+                horizontalItemPadding = Constants.SpacerLarge
+            ) { platformIndex ->
+                val platform = availablePlatformsState.providers[platformIndex]
+
+                PlatformItem(
+                    provider = platform
+                ) {
+                    uriHandler.openUri(platform.url)
+                }
+            }
+
+            if (availablePlatformsState.errorMessage != null) {
+                ErrorDialog(
+                    message = availablePlatformsState.errorMessage!!,
+                    confirmText = "Ok",
+                    onDismiss = {
+
+                    }
+                )
             }
         }
     }
 
     if (linkDialogIsOpen) {
         ConvertedLinksDialog(
-            convertedLinks = convertedLinks,
+            convertedLinksState = convertedLinksState,
             onDismiss =  {
                 viewModel.closeLinkDialog()
             }
@@ -136,7 +157,7 @@ private fun SectionHeader(title: String) {
 
 @Composable
 private fun PlatformItem(
-    platform: Platform,
+    provider: Provider,
     onClick: () -> Unit,
 ) {
     Row(
@@ -160,17 +181,18 @@ private fun PlatformItem(
         horizontalArrangement = Arrangement.spacedBy(Constants.SpacerMedium, Alignment.CenterHorizontally)
     ) {
         LoadingAsyncImage(
-            imageUrl = platform.iconUrl,
-            contentDescription = platform.name,
+            imageUrl = provider.iconUrl,
+            contentDescription = provider.name,
             nonImageColor = Colors.Text,
-            fallback = painterResource(platform.fallbackResource),
-            error = painterResource(platform.fallbackResource),
+            fallback = painterResource(Res.drawable.ic_image),
+            error = painterResource(Res.drawable.ic_image_error),
+            alwaysUseColorFilter = true,
             modifier = Modifier
                 .size(30.dp)
         )
 
         Text(
-            text = platform.name,
+            text = provider.getFormattedName(),
             fontSize = Constants.FontSizeMedium,
             color = Colors.Text,
         )

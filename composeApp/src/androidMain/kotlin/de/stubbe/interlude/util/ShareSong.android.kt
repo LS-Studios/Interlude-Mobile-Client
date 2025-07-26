@@ -17,7 +17,7 @@ actual fun shareSong(link: ConvertedLink, context: Any?) {
 
     Thread {
         try {
-            val url = URL(link.songImageUrl)
+            val url = URL(link.artwork)
             val connection = url.openConnection()
             connection.connect()
             val input = connection.getInputStream()
@@ -33,7 +33,7 @@ actual fun shareSong(link: ConvertedLink, context: Any?) {
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "image/*"
                 putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_TEXT, "${link.songName} – ${link.link}")
+                putExtra(Intent.EXTRA_TEXT, "${link.displayName} – ${link.url}")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 
@@ -47,6 +47,6 @@ actual fun shareSong(link: ConvertedLink, context: Any?) {
 actual fun copySongToClipboard(convertedLink: ConvertedLink, context: Any?) {
     val androidContext = (context as? Context) ?: throw IllegalArgumentException("Context must be an instance of Context")
     val clipboard = androidContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    val clip = ClipData.newPlainText("Song Link", convertedLink.link)
+    val clip = ClipData.newPlainText("Song Link", convertedLink.url)
     clipboard.setPrimaryClip(clip)
 }

@@ -20,6 +20,8 @@ import de.stubbe.interlude.util.getNavRoute
 import de.stubbe.interlude.view.components.BottomBar
 import de.stubbe.interlude.view.components.TopBar
 import de.stubbe.interlude.view.screens.ConverterScreen
+import de.stubbe.interlude.view.screens.HistoryScreen
+import de.stubbe.interlude.view.screens.SettingsScreen
 
 @Composable
 fun Navigation() {
@@ -67,11 +69,11 @@ fun Navigation() {
                 ConverterScreen()
             }
             composable<Route.History> {
-                Text("History Screen", modifier = Modifier.padding(16.dp))
+                HistoryScreen()
             }
 
             composable<Route.Settings> {
-                Text("Calendar Screen", modifier = Modifier.padding(16.dp))
+                SettingsScreen()
             }
         }
     }
