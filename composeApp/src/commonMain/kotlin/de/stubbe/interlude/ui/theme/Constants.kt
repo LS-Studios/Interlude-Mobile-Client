@@ -9,6 +9,8 @@ import androidx.compose.ui.unit.TextUnit
 object Constants {
 
     const val BASE_URL = "http://100.99.70.140:8080"
+    const val THEME_MODE_KEY = "themeMode"
+    const val LANGUAGE_ISO_KEY = "languageIso"
 
     // Padding
     val PaddingXXSmall: Dp = 2.dp
@@ -82,7 +84,7 @@ object Constants {
     val ValueHuge2: Dp = 140.dp
     val ValueHuge3: Dp = 170.dp
 
-    // Offsets (commonly used offset values)
+    // Offsets (commonly used offset values-de)
     val OffsetSmall: Dp = 10.dp
     val OffsetMedium: Dp = 16.dp
     val OffsetLarge: Dp = 20.dp

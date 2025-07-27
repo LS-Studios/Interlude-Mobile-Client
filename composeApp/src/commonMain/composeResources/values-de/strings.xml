@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Interlude</string>
+
+    <string name="converter">Konverter</string>
+    <string name="paste_music_link">Füge hier deinen Musiklink ein</string>
+    <string name="convert">Konvertieren</string>
+    <string name="available_platforms">Verfügbare Plattformen</string>
+    <string name="history">Verlauf</string>
+    <string name="settings">Einstellungen</string>
+    <string name="theme">Design</string>
+    <string name="system">System</string>
+    <string name="light">Hell</string>
+    <string name="dark">Dunkel</string>
+    <string name="language">Sprache</string>
+    <string name="german">Deutsch</string>
+    <string name="english">Englisch</string>
+    <string name="history_deleted">Verlauf gelöscht</string>
+    <string name="delete_history">Verlauf löschen</string>
+    <string name="service_not_available">Service nicht verfügbar</string>
+    <string name="no_history_yet">Noch kein Verlauf vorhanden.
+ Konvertiere einen Link, um ihn hier zu sehen.</string>
+    <string name="delete_history_item">Verlaufseintrag gelöscht</string>
+</resources>

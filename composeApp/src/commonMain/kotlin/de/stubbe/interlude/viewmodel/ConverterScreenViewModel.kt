@@ -37,7 +37,11 @@ class ConverterScreenViewModel(
         viewModelScope.launch {
             appShareRepository.injectedLink
                 .collect { sharedLink ->
-                    _link.value = sharedLink ?: ""
+                    if (sharedLink == null || sharedLink.isBlank()) return@collect
+
+                    _link.value = sharedLink
+                    convertLink()
+                    openLinkDialog()
                 }
         }
     }
@@ -55,17 +59,9 @@ class ConverterScreenViewModel(
                 )
             }
             .onError { error ->
-                val errorMessage = when(error) {
-                    DataError.Remote.NO_INTERNET -> "No internet connection"
-                    DataError.Remote.REQUEST_TIMEOUT -> "Request timeout"
-                    DataError.Remote.TOO_MANY_REQUESTS -> "Too many requests"
-                    DataError.Remote.SERVER -> "Internal server error"
-                    DataError.Remote.SERIALIZATION -> "Error while serializing data"
-                    DataError.Remote.UNKNOWN -> "Unknown error"
-                }
                 emit(
                     PlatformState(
-                        errorMessage = errorMessage,
+                        errorMessage = error.message,
                         isLoading = false
                     )
                 )
@@ -96,15 +92,7 @@ class ConverterScreenViewModel(
                     ConvertedLinkEntity.fromConvertedLink(it)
                 })
             }.onError { error ->
-                val errorMessage = when(error) {
-                    DataError.Remote.NO_INTERNET -> "No internet connection"
-                    DataError.Remote.REQUEST_TIMEOUT -> "Request timeout"
-                    DataError.Remote.TOO_MANY_REQUESTS -> "Too many requests"
-                    DataError.Remote.SERVER -> "Internal server error"
-                    DataError.Remote.SERIALIZATION -> "Error while serializing data"
-                    DataError.Remote.UNKNOWN -> "Unknown error"
-                }
-
+                val errorMessage = error.message
                 _convertedLinksState.value = ConvertedLinksState(
                     errorMessage = errorMessage
                 )

@@ -20,32 +20,47 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavUri
 import de.stubbe.interlude.model.Provider
+import de.stubbe.interlude.repository.AppShareRepository
 import de.stubbe.interlude.ui.theme.Colors
 import de.stubbe.interlude.ui.theme.Constants
+import de.stubbe.interlude.util.ExternalLinkHandler
 import de.stubbe.interlude.view.components.LoadingAsyncImage
 import de.stubbe.interlude.view.components.NonlazyGrid
 import de.stubbe.interlude.view.components.RoundedInputField
 import de.stubbe.interlude.view.dialogs.ConvertedLinksDialog
-import de.stubbe.interlude.view.dialogs.ErrorDialog
 import de.stubbe.interlude.viewmodel.ConverterScreenViewModel
 import interlude.composeapp.generated.resources.Res
+import interlude.composeapp.generated.resources.available_platforms
+import interlude.composeapp.generated.resources.convert
 import interlude.composeapp.generated.resources.ic_image
 import interlude.composeapp.generated.resources.ic_image_error
+import interlude.composeapp.generated.resources.paste_music_link
+import interlude.composeapp.generated.resources.service_not_available
+import multiplatform.network.cmptoast.ToastDuration
+import multiplatform.network.cmptoast.showToast
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ConverterScreen() {
     val viewModel: ConverterScreenViewModel = koinViewModel()
+    val appShareRepository: AppShareRepository = koinInject()
 
     val link by viewModel.link.collectAsState()
     val availablePlatformsState by viewModel.availablePlatformsState.collectAsState()
@@ -53,6 +68,36 @@ fun ConverterScreen() {
     val linkDialogIsOpen by viewModel.linkDialogIsOpen.collectAsState()
 
     val uriHandler = LocalUriHandler.current
+
+    val toastBGColor = Colors.Error
+    val toastTextColor = Colors.OnError
+
+    val serviceNotAvailableText = stringResource(Res.string.service_not_available)
+    val pastMusicLinkText = stringResource(Res.string.paste_music_link)
+    val convertText = stringResource(Res.string.convert)
+    val availablePlatformsText = stringResource(Res.string.available_platforms)
+
+    LaunchedEffect(availablePlatformsState.errorMessage) {
+        if (availablePlatformsState.errorMessage == null) return@LaunchedEffect
+
+        val errorMessage = serviceNotAvailableText
+
+        showToast(
+            message = errorMessage,
+            backgroundColor = toastBGColor,
+            textColor = toastTextColor,
+            duration = ToastDuration.Short
+        )
+    }
+
+    DisposableEffect(Unit) {
+        ExternalLinkHandler.listener = { link ->
+            appShareRepository.setInjectedLink(link)
+        }
+        onDispose {
+            ExternalLinkHandler.listener = null
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -68,7 +113,7 @@ fun ConverterScreen() {
             onValueChange = { newLink ->
                 viewModel.setLink(newLink)
             },
-            placeholder = "Past you music link here",
+            placeholder = pastMusicLinkText,
             maxLines = 4
         )
 
@@ -79,19 +124,24 @@ fun ConverterScreen() {
                 viewModel.convertLink()
                 viewModel.openLinkDialog()
             },
+            enabled = link.isNotBlank(),
             shape = Constants.Shape.Rounded.Small,
-            colors = ButtonDefaults.buttonColors(containerColor = Colors.Accent)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Colors.Accent,
+                disabledContainerColor = Colors.Accent.copy(alpha = 0.5f),
+                contentColor = Colors.OnAccent,
+                disabledContentColor = Colors.OnAccent.copy(alpha = 0.5f)
+            )
         ) {
             Text(
                 modifier = Modifier
                     .padding(Constants.PaddingSmall),
-                text = "Convert",
-                color = Colors.Text,
+                text = convertText,
                 fontSize = Constants.FontSizeMedium
             )
         }
 
-        SectionHeader("Available Platforms")
+        SectionHeader(availablePlatformsText)
 
         if (availablePlatformsState.isLoading) {
             Box(
@@ -118,16 +168,6 @@ fun ConverterScreen() {
                 ) {
                     uriHandler.openUri(platform.url)
                 }
-            }
-
-            if (availablePlatformsState.errorMessage != null) {
-                ErrorDialog(
-                    message = availablePlatformsState.errorMessage!!,
-                    confirmText = "Ok",
-                    onDismiss = {
-
-                    }
-                )
             }
         }
     }

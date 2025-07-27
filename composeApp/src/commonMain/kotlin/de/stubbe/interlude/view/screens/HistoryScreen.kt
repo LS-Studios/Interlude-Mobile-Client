@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,7 +25,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -36,8 +39,14 @@ import de.stubbe.interlude.util.shareSong
 import de.stubbe.interlude.view.components.LoadingAsyncImage
 import de.stubbe.interlude.viewmodel.HistoryScreenViewModel
 import interlude.composeapp.generated.resources.Res
+import interlude.composeapp.generated.resources.delete_history
+import interlude.composeapp.generated.resources.delete_history_item
 import interlude.composeapp.generated.resources.ic_image_error
+import interlude.composeapp.generated.resources.no_history_yet
+import multiplatform.network.cmptoast.ToastDuration
+import multiplatform.network.cmptoast.showToast
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -46,16 +55,41 @@ fun HistoryScreen() {
 
     val history by viewModel.history.collectAsState()
 
+    val toastBGColor = Colors.Accent
+    val toastTextColor = Colors.OnAccent
+
+    val noHistoryText = stringResource(Res.string.no_history_yet)
+    val deleteHistoryText = stringResource(Res.string.delete_history)
+
     LazyColumn(
         modifier = Modifier
-            .padding(Constants.PaddingLarge),
-        verticalArrangement = Arrangement.spacedBy(Constants.SpacerLarge)
+            .padding(Constants.PaddingSmall),
+        verticalArrangement = Arrangement.spacedBy(Constants.SpacerSmall)
     ) {
+        item {
+            if (history.isEmpty()) {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    text = noHistoryText,
+                    color = Colors.Text,
+                    textAlign = TextAlign.Center,
+                    fontStyle = FontStyle.Italic,
+                    fontSize = Constants.FontSizeMedium
+                )
+            }
+        }
         items(history) { historyItem ->
             HistoryRow(
                 historyItem = historyItem,
                 onDelete = {
                     viewModel.deleteHistoryItem(historyItem)
+                    showToast(
+                        message = deleteHistoryText,
+                        backgroundColor = toastBGColor,
+                        textColor = toastTextColor,
+                        duration = ToastDuration.Short
+                    )
                 }
             )
         }
@@ -68,6 +102,8 @@ private fun HistoryRow(
     onClick: () -> Unit = {},
     onDelete: () -> Unit = {}
 ) {
+    val deletedHistoryItemText = stringResource(Res.string.delete_history_item)
+
     Row(
         modifier = Modifier
             .clickable(
@@ -134,7 +170,7 @@ private fun HistoryRow(
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = "Delete history item",
+                contentDescription = deletedHistoryItemText,
                 tint = Colors.Text
             )
         }

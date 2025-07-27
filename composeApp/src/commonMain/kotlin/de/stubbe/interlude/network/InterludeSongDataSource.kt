@@ -16,7 +16,7 @@ class InterludeSongDataSource(
     private val client: HttpClient
 ) {
 
-    suspend fun getAvailablePlatforms(): Result<List<ProviderDto>, DataError.Remote> = safeCall<List<ProviderDto>> {
+    suspend fun getAvailablePlatforms(): Result<List<ProviderDto>, DataError> = safeCall<List<ProviderDto>> {
         client.get(
             urlString = "${Constants.BASE_URL}/platforms"
         ) {
@@ -26,7 +26,7 @@ class InterludeSongDataSource(
 
     suspend fun convert(
         link: String
-    ): Result<ConvertedLinksDto, DataError.Remote> = safeCall<ConvertedLinksDto> {
+    ): Result<ConvertedLinksDto, DataError> = safeCall<ConvertedLinksDto> {
         client.get(
             urlString = "${Constants.BASE_URL}/convert"
         ) {

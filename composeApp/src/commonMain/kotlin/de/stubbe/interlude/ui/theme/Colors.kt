@@ -17,8 +17,9 @@ object Colors {
     private var currentThemeMode by mutableStateOf(ThemeMode.LIGHT)
 
     val Accent = Color(0xFF1A94E5)
-    val SelectionColor = TextSelectionColors(Accent, Accent.copy(alpha = 0.5f))
+    val OnAccent = Color(0xFFFFFFFF)
     val Error = Color(0xFFB00020)
+    val OnError = Color(0xFFFFFFFF)
     
     /**
      * Determines if dark theme should be used based on preference

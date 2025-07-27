@@ -26,11 +26,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
@@ -51,6 +53,8 @@ import de.stubbe.interlude.view.components.LoadingAsyncImage
 import interlude.composeapp.generated.resources.Res
 import interlude.composeapp.generated.resources.ic_image_error
 import kotlinx.coroutines.launch
+import multiplatform.network.cmptoast.ToastDuration
+import multiplatform.network.cmptoast.showToast
 import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -64,6 +68,23 @@ fun ConvertedLinksDialog(
 
     val coroutineScope = rememberCoroutineScope()
     val context = getPlatformContext()
+
+    val toastBGColor = Colors.Error
+    val toastTextColor = Colors.OnError
+
+    LaunchedEffect(convertedLinksState.errorMessage) {
+        if (convertedLinksState.errorMessage == null) return@LaunchedEffect
+
+        val errorMessage = "Service not available"
+
+        showToast(
+            message = errorMessage,
+            backgroundColor = toastBGColor,
+            textColor = toastTextColor,
+            duration = ToastDuration.Short
+        )
+        onDismiss()
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -111,16 +132,6 @@ fun ConvertedLinksDialog(
                             copySongToClipboard(convertedLink, context)
                         }
                     }
-                }
-
-                if (convertedLinksState.errorMessage != null) {
-                    ErrorDialog(
-                        message = convertedLinksState.errorMessage,
-                        confirmText = "Ok",
-                        onDismiss = {
-
-                        }
-                    )
                 }
             }
         }

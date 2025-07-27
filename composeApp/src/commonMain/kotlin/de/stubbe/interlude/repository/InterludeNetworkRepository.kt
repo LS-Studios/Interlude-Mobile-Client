@@ -18,7 +18,7 @@ class InterludeNetworkRepository(
     private val songDataSource: InterludeSongDataSource,
     private val cachedPlatformRepository: CachedPlatformRepository,
 ) {
-    private suspend fun fetchAndCacheFromNetwork(): Result<List<Provider>, DataError.Remote> {
+    private suspend fun fetchAndCacheFromNetwork(): Result<List<Provider>, DataError> {
         val result = songDataSource.getAvailablePlatforms()
 
         result.onSuccess { dtos ->
@@ -29,7 +29,7 @@ class InterludeNetworkRepository(
         return result.map { dtos -> dtos.map { Provider.fromDto(it) } }
     }
 
-    suspend fun getAvailablePlatforms(): Result<List<Provider>, DataError.Remote> {
+    suspend fun getAvailablePlatforms(): Result<List<Provider>, DataError> {
         val cached = cachedPlatformRepository.getCachedPlatforms()
 
         if (cached.isNotEmpty()) {
@@ -45,7 +45,7 @@ class InterludeNetworkRepository(
 
     suspend fun convert(
         link: String,
-    ): Result<List<ConvertedLink>, DataError.Remote> = getAvailablePlatforms()
+    ): Result<List<ConvertedLink>, DataError> = getAvailablePlatforms()
         .flatMap { platforms ->
             songDataSource.convert(link).map { dto ->
                 dto.results.map { dto -> ConvertedLink.fromDto(platforms, dto) }

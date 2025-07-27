@@ -15,6 +15,11 @@ import de.stubbe.interlude.model.Route
 import de.stubbe.interlude.model.TabItem
 import de.stubbe.interlude.ui.theme.Colors
 import de.stubbe.interlude.ui.theme.Constants
+import interlude.composeapp.generated.resources.Res
+import interlude.composeapp.generated.resources.converter
+import interlude.composeapp.generated.resources.history
+import interlude.composeapp.generated.resources.settings
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun BottomBar(
@@ -22,6 +27,10 @@ fun BottomBar(
     currentRoute: Route,
     onTabSelected: (Route) -> Unit,
 ) {
+    val converterText = stringResource(Res.string.converter)
+    val historyText = stringResource(Res.string.history)
+    val settingsText = stringResource(Res.string.settings)
+
     NavigationBar(
         modifier = Modifier
             .fillMaxWidth()
@@ -31,6 +40,12 @@ fun BottomBar(
         contentColor = Colors.Text,
     ) {
         tabs.forEach { tab ->
+            val tabText = when (tab.route) {
+                is Route.Converter -> converterText
+                is Route.History -> historyText
+                is Route.Settings -> settingsText
+            }
+
             NavigationBarItem(
                 selected = currentRoute == tab.route,
                 onClick = {
@@ -38,8 +53,8 @@ fun BottomBar(
                         onTabSelected(tab.route)
                     }
                 },
-                icon = { Icon(tab.icon, contentDescription = tab.title) },
-                label = { Text(tab.title) },
+                icon = { Icon(tab.icon, contentDescription = tabText) },
+                label = { Text(tabText) },
                 alwaysShowLabel = false,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Colors.Text,

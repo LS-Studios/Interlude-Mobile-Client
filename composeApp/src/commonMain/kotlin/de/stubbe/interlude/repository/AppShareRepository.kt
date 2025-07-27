@@ -8,7 +8,15 @@ class AppShareRepository {
     val injectedLink: MutableStateFlow<String?> = _injectedLink
 
     fun setInjectedLink(link: String?) {
-        _injectedLink.value = link
+        if (link == null) return
+
+        val regex = Regex("""https?://[^\s]+""")
+        val match = regex.find(link)
+
+        val parsedLink = match?.value
+        if (parsedLink != null) {
+            _injectedLink.value = parsedLink
+        }
     }
 
 }

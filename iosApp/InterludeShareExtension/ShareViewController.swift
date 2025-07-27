@@ -6,39 +6,109 @@
 //
 
 import UIKit
-import Social
+import SwiftUI
+import UniformTypeIdentifiers
 
-class ShareViewController: SLComposeServiceViewController {
+class ShareViewController: UIViewController {
 
-    override func isContentValid() -> Bool {
-        return true
-    }
-
-    override func didSelectPost() {
-        guard let item = extensionContext?.inputItems.first as? NSExtensionItem,
-              let attachments = item.attachments else {
-            extensionContext?.completeRequest(returningItems: nil)
-            return
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        extractSharedText { text in
+            guard let text else {
+                self.close()
+                return
+            }
+            
+            DispatchQueue.main.async {
+                let contentView = UIHostingController(rootView: ShareExtensionView(text: text))
+                self.addChild(contentView)
+                self.view.addSubview(contentView.view)
+                contentView.didMove(toParent: self)
+                
+                contentView.view.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    contentView.view.topAnchor.constraint(equalTo: self.view.topAnchor),
+                    contentView.view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+                    contentView.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+                    contentView.view.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
+                ])
+            }
         }
-
-        for provider in attachments {
-            if provider.hasItemConformingToTypeIdentifier("public.plain-text") {
-                provider.loadItem(forTypeIdentifier: "public.plain-text", options: nil) { (data, error) in
-                    if let text = data as? String {
-                        let sharedDefaults = UserDefaults(suiteName: "group.de.stubbe.interlude")
-                        sharedDefaults?.set(text, forKey: "shared_link")
-                    }
-
-                    DispatchQueue.main.async {
-                        self.extensionContext?.completeRequest(returningItems: nil)
-                    }
+        
+        NotificationCenter.default.addObserver(forName: NSNotification.Name("close"), object: nil, queue: nil) { _ in
+            DispatchQueue.main.async {
+                self.close()
+            }
+        }
+        NotificationCenter.default.addObserver(forName: NSNotification.Name("openApp"), object: nil, queue: nil) { notification in
+            DispatchQueue.main.async {
+                if let userInfo = notification.userInfo,
+                   let link = userInfo["link"] as? String {
+                    self.openParentApp(link: link)
+                } else {
+                    self.close()
                 }
-                break
             }
         }
     }
+    
+    private func openParentApp(link: String) {
+        if let encodedLink = link.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+           let url = URL(string: "interlude://share?link=\(encodedLink)") {
 
-    override func configurationItems() -> [Any]! {
-        return []
+            var responder: UIResponder? = self
+            while responder != nil {
+                if let application = responder as? UIApplication {
+                    application.open(url)
+                    break
+                }
+                responder = responder?.next
+            }
+        }
     }
+    
+    private func extractSharedText(completion: @escaping (String?) -> Void) {
+        guard
+            let item = extensionContext?.inputItems.first as? NSExtensionItem,
+            let provider = item.attachments?.first
+        else {
+            completion(nil)
+            return
+        }
+        
+        let supportedTypes = [
+            UTType.plainText.identifier,
+            UTType.text.identifier,
+            UTType.url.identifier
+        ]
+        
+        for type in supportedTypes {
+            if provider.hasItemConformingToTypeIdentifier(type) {
+                provider.loadItem(forTypeIdentifier: type, options: nil) { item, error in
+                    if let error {
+                        print("Error loading item: \(error.localizedDescription)")
+                        completion(nil)
+                        return
+                    }
+                    
+                    if let str = item as? String {
+                        completion(str)
+                    } else if let url = item as? URL {
+                        completion(url.absoluteString)
+                    } else {
+                        completion(nil)
+                    }
+                }
+                return
+            }
+        }
+        
+        completion(nil)
+    }
+
+    func close() {
+        self.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
+    }
+    
 }

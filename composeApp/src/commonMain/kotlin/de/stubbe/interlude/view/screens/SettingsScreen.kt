@@ -18,28 +18,74 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import de.stubbe.interlude.model.Language
 import de.stubbe.interlude.model.ThemeMode
 import de.stubbe.interlude.ui.theme.Colors
 import de.stubbe.interlude.ui.theme.Constants
+import de.stubbe.interlude.util.applyLanguage
+import de.stubbe.interlude.util.getPlatformContext
 import de.stubbe.interlude.view.components.DropDownMenu
 import de.stubbe.interlude.viewmodel.SettingsViewModel
+import dev.burnoo.compose.remembersetting.rememberStringSetting
+import interlude.composeapp.generated.resources.Res
+import interlude.composeapp.generated.resources.dark
+import interlude.composeapp.generated.resources.delete_history
+import interlude.composeapp.generated.resources.english
+import interlude.composeapp.generated.resources.german
+import interlude.composeapp.generated.resources.history_deleted
+import interlude.composeapp.generated.resources.language
+import interlude.composeapp.generated.resources.light
+import interlude.composeapp.generated.resources.system
+import interlude.composeapp.generated.resources.theme
+import io.ktor.util.collections.setValue
+import multiplatform.network.cmptoast.ToastDuration
+import multiplatform.network.cmptoast.showToast
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SettingsScreen() {
     val viewModel: SettingsViewModel = koinViewModel()
 
-    val selectedTheme by viewModel.selectedTheme.collectAsState()
-    val selectedLanguage by viewModel.selectedLanguage.collectAsState()
-    val historyEnabled by viewModel.historyEnabled.collectAsState()
+    var themeMode by rememberStringSetting(
+        key = Constants.THEME_MODE_KEY,
+        defaultValue = ThemeMode.SYSTEM.name
+    )
+    val selectedTheme by derivedStateOf {
+        ThemeMode.entries.first { it.name == themeMode }
+    }
+
+    var languageIso by rememberStringSetting(
+        key = Constants.LANGUAGE_ISO_KEY,
+        defaultValue = Language.GERMAN.iso
+    )
+    val selectedLanguage by derivedStateOf {
+        Language.entries.first { it.iso == languageIso }
+    }
+
+    val context = getPlatformContext()
+
+    val toastBGColor = Colors.Accent
+    val toastTextColor = Colors.OnAccent
+
+    val themeText = stringResource(Res.string.theme)
+    val systemText = stringResource(Res.string.system)
+    val lightText = stringResource(Res.string.light)
+    val darkText = stringResource(Res.string.dark)
+    val languageText = stringResource(Res.string.language)
+    val germanText = stringResource(Res.string.german)
+    val englishText = stringResource(Res.string.english)
+    val historyDeletedText = stringResource(Res.string.history_deleted)
+    val deleteHistoryText = stringResource(Res.string.delete_history)
 
     Column(
         modifier = Modifier
@@ -52,7 +98,7 @@ fun SettingsScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Theme",
+                text = themeText,
                 color = Colors.UnselectedText,
                 fontSize = Constants.FontSizeSmall
             )
@@ -64,7 +110,7 @@ fun SettingsScreen() {
                     Button(
                         modifier = Modifier.weight(1f),
                         onClick = {
-                            viewModel.setTheme(mode)
+                            themeMode = mode.name
                             Colors.setThemeMode(mode)
                         },
                         colors = ButtonDefaults.buttonColors(
@@ -74,25 +120,54 @@ fun SettingsScreen() {
                         border = BorderStroke(Constants.BorderWidthSmall, Colors.Border),
                         contentPadding = PaddingValues(Constants.PaddingSmall)
                     ) {
-                        Text(mode.name, color = Colors.Text, fontSize = Constants.FontSizeSmall)
+                        Text(
+                            text = when (mode) {
+                                ThemeMode.SYSTEM -> systemText
+                                ThemeMode.LIGHT -> lightText
+                                ThemeMode.DARK -> darkText
+                            },
+                            color = if (isSelected) Colors.OnAccent else Colors.Text,
+                            fontSize = Constants.FontSizeSmall
+                        )
                     }
                 }
             }
         }
 
-        DropDownMenu(
-            items = Language.entries,
-            getTitle = { when (it) {
-                Language.GERMAN -> "German"
-                Language.ENGLISH -> "English"
-            } },
-            selectedItem = selectedLanguage,
-            onItemSelected = { viewModel.setLanguage(it) }
-        )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = languageText,
+                color = Colors.UnselectedText,
+                fontSize = Constants.FontSizeSmall
+            )
+            DropDownMenu(
+                items = Language.entries,
+                getTitle = {
+                    when (it) {
+                        Language.GERMAN -> germanText
+                        Language.ENGLISH -> englishText
+                    }
+                },
+                selectedItem = selectedLanguage,
+                onItemSelected = { newLanguage ->
+                    languageIso = newLanguage.iso
+                    applyLanguage(newLanguage.iso, context)
+                }
+            )
+        }
 
         Button(
             onClick = {
                 viewModel.clearHistory()
+                showToast(
+                    message = historyDeletedText,
+                    backgroundColor = toastBGColor,
+                    textColor = toastTextColor,
+                    duration = ToastDuration.Short
+                )
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -101,8 +176,8 @@ fun SettingsScreen() {
             shape = Constants.Shape.Rounded.Small
         ) {
             Text(
-                "Delete history",
-                color = Colors.Text,
+                deleteHistoryText,
+                color = Colors.OnAccent,
                 fontSize = Constants.FontSizeMedium
             )
         }

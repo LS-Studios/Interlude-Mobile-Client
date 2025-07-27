@@ -86,6 +86,8 @@ kotlin {
             implementation(libs.ktorfit)
 
             implementation(libs.compose.shimmer)
+            implementation(libs.cmptoast)
+            implementation(libs.compose.remember.setting)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
