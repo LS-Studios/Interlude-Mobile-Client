@@ -1,7 +1,7 @@
 package de.stubbe.interlude.util
 
 import androidx.navigation.NavBackStackEntry
-import de.stubbe.interlude.model.Route
+import de.stubbe.interlude.domain.model.Route
 
 /**
  * Extension functions to work with navigation routes in the app.

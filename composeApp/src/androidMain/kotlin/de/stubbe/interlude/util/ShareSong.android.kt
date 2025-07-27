@@ -4,11 +4,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
-import de.stubbe.interlude.model.ConvertedLink
+import de.stubbe.interlude.domain.model.ConvertedLink
 import java.io.File
 import java.net.URL
 

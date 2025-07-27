@@ -1,6 +1,6 @@
 package de.stubbe.interlude.util
 
-import de.stubbe.interlude.model.ConvertedLink
+import de.stubbe.interlude.domain.model.ConvertedLink
 
 expect fun copySongToClipboard(convertedLink: ConvertedLink, context: Any?)
 

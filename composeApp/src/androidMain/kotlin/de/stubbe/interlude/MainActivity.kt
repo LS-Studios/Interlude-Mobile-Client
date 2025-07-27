@@ -8,8 +8,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import de.stubbe.interlude.repository.AppShareRepository
-import de.stubbe.interlude.view.App
+import de.stubbe.interlude.domain.repository.AppShareRepository
+import de.stubbe.interlude.platform.App
 import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {

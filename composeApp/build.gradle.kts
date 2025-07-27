@@ -143,7 +143,6 @@ val secrets = Properties().apply {
     }
 }
 
-
 buildkonfig {
     packageName = "de.stubbe.interlude.config"
 

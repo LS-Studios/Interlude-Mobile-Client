@@ -1,8 +1,7 @@
 package de.stubbe.interlude
 
 import android.app.Application
-import de.stubbe.interlude.database.InterludeDatabase
-import de.stubbe.interlude.di.initKoin
+import de.stubbe.interlude.platform.di.initKoin
 import multiplatform.network.cmptoast.AppContext
 import org.koin.android.ext.koin.androidContext
 
