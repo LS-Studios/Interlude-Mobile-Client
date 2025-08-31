@@ -9,7 +9,11 @@
 import SwiftUI
 import ComposeApp
 
-struct ConvertedLink {
+struct SResponse: Decodable {
+    let results: [SConvertedLink]
+}
+
+struct SConvertedLink: Decodable {
     let provider: String
     let type: String
     let displayName: String
@@ -19,7 +23,7 @@ struct ConvertedLink {
 
 struct ShareExtensionView: View {
     @State private var text: String
-    @State private var convertedLinks: [ConvertedLink] = []
+    @State private var convertedLinks: [SConvertedLink] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var debugInfo: String?
@@ -73,7 +77,7 @@ struct ShareExtensionView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollView {
-                        LazyVStack(spacing: 12) {
+                        LazyVStack(spacing: 8) {
                             ForEach(convertedLinks.indices, id: \.self) { index in
                                 ConvertedLinkRow(link: convertedLinks[index])
                             }
@@ -121,7 +125,7 @@ struct ShareExtensionView: View {
         }
     }
     
-    func callConvertAPI(link: String) async throws -> [ConvertedLink] {
+    func callConvertAPI(link: String) async throws -> [SConvertedLink] {
         let url = URL(string: "https://interlude.api.leshift.de/convert?link=\(link.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")!
 
         var request = URLRequest(url: url)
@@ -132,122 +136,71 @@ struct ShareExtensionView: View {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw NSError(
-                domain: "MyApp",
-                code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "Keine HTTP Response erhalten"]
-            )
-        }
-        
-        let statusCode = httpResponse.statusCode
-        let headers = httpResponse.allHeaderFields
-        let dataString = String(data: data, encoding: .utf8) ?? "Keine Daten (\(data.count) bytes)"
-        
-        let debugString = """
-        Status Code: \(statusCode)
-        Headers: \(headers)
-        Response: \(dataString)
-        """
-        
-        guard httpResponse.statusCode == 200 else {
-            await MainActor.run {
-                self.debugInfo = debugString
-            }
-            
-            throw NSError(
-                domain: "MyApp", 
-                code: httpResponse.statusCode,
-                userInfo: [
-                    NSLocalizedDescriptionKey: "HTTP Fehler \(httpResponse.statusCode)"
-                ]
-            )
-        }
-        
-        // Store debug info for successful requests too (optional)
-        await MainActor.run {
-            self.debugInfo = debugString
-        }
-
-        // Parse JSON response - expecting array of arrays: [[provider, type, displayName, url, artwork], []]
-        guard let jsonArray = try JSONSerialization.jsonObject(with: data) as? [[String?]] else {
-            throw URLError(.cannotParseResponse)
-        }
-
-        return jsonArray.compactMap { linkArray in
-            guard linkArray.count >= 4,
-                  let provider = linkArray[0],
-                  let type = linkArray[1],
-                  let displayName = linkArray[2],
-                  let url = linkArray[3] else {
-                return nil
-            }
-
-            let artwork = linkArray.count > 4 ? linkArray[4] : nil
-
-            return ConvertedLink(
-                provider: provider,
-                type: type,
-                displayName: displayName,
-                url: url,
-                artwork: artwork
-            )
-        }
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(SResponse.self, from: data)
+        return response.results.filter { $0.displayName.isEmpty == false }
     }
 }
 
 struct ConvertedLinkRow: View {
-    let link: ConvertedLink
+    let link: SConvertedLink
     
     var body: some View {
-        HStack(spacing: 12) {
-            AsyncImage(url: URL(string: link.artwork ?? "")) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.gray.opacity(0.3))
-                    .overlay(
-                        Image(systemName: "music.note")
-                            .foregroundColor(.gray)
-                    )
+        Link(
+            destination: URL(string: link.url)!,
+            label: {
+                HStack(spacing: 12) {
+                    AsyncImage(url: URL(string: link.artwork ?? "")) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.gray.opacity(0.3))
+                            .overlay(
+                                Image(systemName: "music.note")
+                                    .foregroundColor(.gray)
+                            )
+                    }
+                    .frame(width: 50, height: 50)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(link.displayName)
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.leading)
+                            .lineLimit(2)
+                        
+                        Text(link.provider)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Button {
+                        ShareSong_iosKt.shareSong(link: ConvertedLink.init(
+                            provider: Provider(name: link.provider, url: "", logoUrl: "", iconUrl: ""),
+                            type: ConvertedLinkType.entries.filter { $0.name.lowercased() == link.type.lowercased() }.first!,
+                            displayName: link.displayName,
+                            url: link.url,
+                            artwork: link.artwork ?? ""
+                        ), context: nil)
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundColor(.blue)
+                    }
+                }
+                .padding()
+                .background(Color(.systemBackground))
+                .cornerRadius(12)
+                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                .onLongPressGesture {
+                    UIPasteboard.general.string = link.url
+                }
             }
-            .frame(width: 50, height: 50)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(link.displayName)
-                    .font(.headline)
-                    .lineLimit(2)
-                
-                Text(link.provider)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            Button {
-                UIPasteboard.general.string = link.url
-            } label: {
-                Image(systemName: "doc.on.doc")
-                    .foregroundColor(.blue)
-            }
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-        .onTapGesture {
-            // Copy URL to clipboard as fallback
-            UIPasteboard.general.string = link.url
-        } 
-        .onLongPressGesture {
-            UIPasteboard.general.string = link.url
-        }
+        )
     }
 }
 
