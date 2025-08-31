@@ -1,6 +1,6 @@
 package de.stubbe.interlude.domain.repository
 
-import de.stubbe.interlude.data.database.entities.CachedPlatformEntity
+import de.stubbe.interlude.data.database.entities.CachedProviderEntity
 import de.stubbe.interlude.data.network.InterludeSongDataSource
 import de.stubbe.interlude.data.network.model.DataError
 import de.stubbe.interlude.data.network.model.map
@@ -16,21 +16,21 @@ import de.stubbe.interlude.data.network.model.flatMap
 
 class InterludeNetworkRepository(
     private val songDataSource: InterludeSongDataSource,
-    private val cachedPlatformRepository: CachedPlatformRepository,
+    private val cachedProviderRepository: CachedProviderRepository,
 ) {
     private suspend fun fetchAndCacheFromNetwork(): Result<List<Provider>, DataError> {
-        val result = songDataSource.getAvailablePlatforms()
+        val result = songDataSource.getAvailableProviders()
 
         result.onSuccess { dtos ->
-            val entities = dtos.map { CachedPlatformEntity.fromDto(it) }
-            cachedPlatformRepository.setCachedPlatforms(entities)
+            val entities = dtos.map { CachedProviderEntity.fromDto(it) }
+            cachedProviderRepository.setCachedProviders(entities)
         }
 
         return result.map { dtos -> dtos.map { Provider.fromDto(it) } }
     }
 
-    suspend fun getAvailablePlatforms(): Result<List<Provider>, DataError> {
-        val cached = cachedPlatformRepository.getCachedPlatforms()
+    suspend fun getAvailableProviders(): Result<List<Provider>, DataError> {
+        val cached = cachedProviderRepository.getCachedProviders()
 
         if (cached.isNotEmpty()) {
             CoroutineScope(Dispatchers.IO).launch {
@@ -45,10 +45,10 @@ class InterludeNetworkRepository(
 
     suspend fun convert(
         link: String,
-    ): Result<List<ConvertedLink>, DataError> = getAvailablePlatforms()
-        .flatMap { platforms ->
+    ): Result<List<ConvertedLink>, DataError> = getAvailableProviders()
+        .flatMap { providers ->
             songDataSource.convert(link).map { dto ->
-                dto.results.map { dto -> ConvertedLink.fromDto(platforms, dto) }
+                dto.results.mapNotNull { dto -> ConvertedLink.fromDto(providers, dto) }
             }
         }
 }

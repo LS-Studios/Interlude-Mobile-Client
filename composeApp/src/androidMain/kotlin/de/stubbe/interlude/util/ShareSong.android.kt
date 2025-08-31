@@ -14,24 +14,36 @@ actual fun shareSong(link: ConvertedLink, context: Any?) {
 
     Thread {
         try {
-            val url = URL(link.artwork)
-            val connection = url.openConnection()
-            connection.connect()
-            val input = connection.getInputStream()
-            val file = File(androidContext.cacheDir, "cover.jpg")
-            file.outputStream().use { input.copyTo(it) }
-
-            val uri = FileProvider.getUriForFile(
-                androidContext,
-                androidContext.packageName + ".provider",
-                file
-            )
+            var imageUri: android.net.Uri? = null
+            if (link.artwork.isNotBlank()) {
+                try {
+                    val url = URL(link.artwork)
+                    val connection = url.openConnection()
+                    connection.connect()
+                    val input = connection.getInputStream()
+                    val file = File(androidContext.cacheDir, "cover.jpg")
+                    file.outputStream().use { input.copyTo(it) }
+                    
+                    imageUri = FileProvider.getUriForFile(
+                        androidContext,
+                        androidContext.packageName + ".provider",
+                        file
+                    )
+                } catch (e: Exception) {
+                    // Artwork download failed, continue without image
+                    e.printStackTrace()
+                }
+            }
 
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "image/*"
-                putExtra(Intent.EXTRA_STREAM, uri)
+                if (imageUri != null) {
+                    type = "image/*"
+                    putExtra(Intent.EXTRA_STREAM, imageUri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                } else {
+                    type = "text/plain"
+                }
                 putExtra(Intent.EXTRA_TEXT, "${link.displayName} – ${link.url}")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 
             androidContext.startActivity(Intent.createChooser(shareIntent, "Share with…"))

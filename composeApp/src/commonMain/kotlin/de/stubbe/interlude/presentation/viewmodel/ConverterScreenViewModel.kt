@@ -3,24 +3,25 @@ package de.stubbe.interlude.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import de.stubbe.interlude.data.database.entities.ConvertedLinkEntity
-import de.stubbe.interlude.domain.model.PlatformState
+import de.stubbe.interlude.domain.model.ProviderState
 import de.stubbe.interlude.data.network.model.onError
 import de.stubbe.interlude.data.network.model.onSuccess
 import de.stubbe.interlude.domain.model.ConvertedLinksState
-import de.stubbe.interlude.domain.repository.AppShareRepository
+import de.stubbe.interlude.domain.model.Provider
+import de.stubbe.interlude.domain.repository.CachedProviderRepository
 import de.stubbe.interlude.domain.repository.HistoryRepository
 import de.stubbe.interlude.domain.repository.InterludeNetworkRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class ConverterScreenViewModel(
     private val interludeNetworkRepository: InterludeNetworkRepository,
+    private val cachedProviderRepository: CachedProviderRepository,
     private val historyRepository: HistoryRepository,
-    private val appShareRepository: AppShareRepository
 ): ViewModel() {
 
     private val _link: MutableStateFlow<String> = MutableStateFlow("")
@@ -34,42 +35,25 @@ class ConverterScreenViewModel(
 
     init {
         viewModelScope.launch {
-            appShareRepository.injectedLink
-                .collect { sharedLink ->
-                    if (sharedLink == null || sharedLink.isBlank()) return@collect
-
-                    _link.value = sharedLink
-                    convertLink()
-                    openLinkDialog()
-                }
+            interludeNetworkRepository.getAvailableProviders()
         }
     }
 
-    val availablePlatformsState: StateFlow<PlatformState> = flow {
-        emit(PlatformState(isLoading = true))
-
-        interludeNetworkRepository.getAvailablePlatforms()
-            .onSuccess { result ->
-                emit(
-                    PlatformState(
-                        providers = result,
-                        isLoading = false
-                    )
+    val availableProviderState: StateFlow<ProviderState> = cachedProviderRepository.getCachedProvidersFlow()
+        .map { cachedProviders ->
+            if (cachedProviders.isEmpty()) {
+                ProviderState(isLoading = true)
+            } else {
+                ProviderState(
+                    providers = cachedProviders.map { Provider.fromCached(it) },
+                    isLoading = false
                 )
             }
-            .onError { error ->
-                emit(
-                    PlatformState(
-                        errorMessage = error.message,
-                        isLoading = false
-                    )
-                )
-            }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = PlatformState(isLoading = true)
-    )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ProviderState(isLoading = true)
+        )
 
     fun setLink(link: String) {
         _link.value = link

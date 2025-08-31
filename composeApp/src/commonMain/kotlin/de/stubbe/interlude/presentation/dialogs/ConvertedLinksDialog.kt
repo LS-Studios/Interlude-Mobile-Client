@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,8 +39,8 @@ import androidx.compose.ui.unit.dp
 import de.stubbe.interlude.domain.model.ConvertedLink
 import de.stubbe.interlude.domain.model.ConvertedLinksState
 import de.stubbe.interlude.presentation.components.LoadingAsyncImage
-import de.stubbe.interlude.ui.theme.Colors
-import de.stubbe.interlude.ui.theme.Constants
+import de.stubbe.interlude.platform.ui.Colors
+import de.stubbe.interlude.platform.ui.Constants
 import de.stubbe.interlude.util.copySongToClipboard
 import de.stubbe.interlude.util.getPlatformContext
 import de.stubbe.interlude.util.shareSong
@@ -62,6 +64,8 @@ fun ConvertedLinksDialog(
 
     val toastBGColor = Colors.Error
     val toastTextColor = Colors.OnError
+
+    val uriHandler = LocalUriHandler.current
 
     LaunchedEffect(convertedLinksState.errorMessage) {
         if (convertedLinksState.errorMessage == null) return@LaunchedEffect
@@ -117,12 +121,16 @@ fun ConvertedLinksDialog(
 
                 convertedLinks.forEach { convertedLink ->
                     ConvertedLinkItem(
-                        convertedLink = convertedLink
-                    ) {
-                        coroutineScope.launch {
-                            copySongToClipboard(convertedLink, context)
+                        convertedLink = convertedLink,
+                        onClick = {
+                            uriHandler.openUri(convertedLink.url)
+                        },
+                        onLongClick = {
+                            coroutineScope.launch {
+                                copySongToClipboard(convertedLink, context)
+                            }
                         }
-                    }
+                    )
                 }
             }
         }
@@ -133,7 +141,8 @@ fun ConvertedLinksDialog(
 @Composable
 private fun ConvertedLinkItem(
     convertedLink: ConvertedLink,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit = {}
 ) {
     val context = getPlatformContext()
 
@@ -144,12 +153,12 @@ private fun ConvertedLinkItem(
                 BorderStroke(Constants.BorderWidthSmall, Colors.Border),
                 Constants.Shape.Rounded.Small
             )
-            .clickable(
-                interactionSource = null,
-                indication = ripple()
-            ) {
-                onClick()
-            }
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick,
+                indication = ripple(),
+                interactionSource = null
+            )
             .padding(Constants.PaddingMedium),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Constants.SpacerLarge)

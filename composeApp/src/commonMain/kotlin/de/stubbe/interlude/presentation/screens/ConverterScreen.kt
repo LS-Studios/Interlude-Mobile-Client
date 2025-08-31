@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -26,22 +27,21 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import de.stubbe.interlude.domain.model.Provider
-import de.stubbe.interlude.domain.repository.AppShareRepository
+import de.stubbe.interlude.platform.ui.Colors
+import de.stubbe.interlude.platform.ui.Constants
 import de.stubbe.interlude.presentation.components.LoadingAsyncImage
 import de.stubbe.interlude.presentation.components.NonlazyGrid
 import de.stubbe.interlude.presentation.components.RoundedInputField
 import de.stubbe.interlude.presentation.dialogs.ConvertedLinksDialog
-import de.stubbe.interlude.ui.theme.Colors
-import de.stubbe.interlude.ui.theme.Constants
-import de.stubbe.interlude.util.ExternalLinkHandler
 import de.stubbe.interlude.presentation.viewmodel.ConverterScreenViewModel
 import interlude.composeapp.generated.resources.Res
-import interlude.composeapp.generated.resources.available_platforms
+import interlude.composeapp.generated.resources.available_providers
 import interlude.composeapp.generated.resources.convert
 import interlude.composeapp.generated.resources.ic_image
 import interlude.composeapp.generated.resources.ic_image_error
@@ -57,10 +57,9 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ConverterScreen() {
     val viewModel: ConverterScreenViewModel = koinViewModel()
-    val appShareRepository: AppShareRepository = koinInject()
 
     val link by viewModel.link.collectAsState()
-    val availablePlatformsState by viewModel.availablePlatformsState.collectAsState()
+    val availableProviderState by viewModel.availableProviderState.collectAsState()
     val convertedLinksState by viewModel.convertedLinksState.collectAsState()
     val linkDialogIsOpen by viewModel.linkDialogIsOpen.collectAsState()
 
@@ -72,10 +71,10 @@ fun ConverterScreen() {
     val serviceNotAvailableText = stringResource(Res.string.service_not_available)
     val pastMusicLinkText = stringResource(Res.string.paste_music_link)
     val convertText = stringResource(Res.string.convert)
-    val availablePlatformsText = stringResource(Res.string.available_platforms)
+    val availableProvidersText = stringResource(Res.string.available_providers)
 
-    LaunchedEffect(availablePlatformsState.errorMessage) {
-        if (availablePlatformsState.errorMessage == null) return@LaunchedEffect
+    LaunchedEffect(availableProviderState.errorMessage) {
+        if (availableProviderState.errorMessage == null) return@LaunchedEffect
 
         val errorMessage = serviceNotAvailableText
 
@@ -85,15 +84,6 @@ fun ConverterScreen() {
             textColor = toastTextColor,
             duration = ToastDuration.Short
         )
-    }
-
-    DisposableEffect(Unit) {
-        ExternalLinkHandler.listener = { link ->
-            appShareRepository.setInjectedLink(link)
-        }
-        onDispose {
-            ExternalLinkHandler.listener = null
-        }
     }
 
     Column(
@@ -138,9 +128,9 @@ fun ConverterScreen() {
             )
         }
 
-        SectionHeader(availablePlatformsText)
+        SectionHeader(availableProvidersText)
 
-        if (availablePlatformsState.isLoading) {
+        if (availableProviderState.isLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -154,16 +144,16 @@ fun ConverterScreen() {
         } else {
             NonlazyGrid(
                 columns = 2,
-                itemCount = availablePlatformsState.providers.size,
+                itemCount = availableProviderState.providers.size,
                 verticalItemPadding = Constants.SpacerLarge,
                 horizontalItemPadding = Constants.SpacerLarge
-            ) { platformIndex ->
-                val platform = availablePlatformsState.providers[platformIndex]
+            ) { providerIndex ->
+                val provider = availableProviderState.providers[providerIndex]
 
-                PlatformItem(
-                    provider = platform
+                ProviderItem(
+                    provider = provider
                 ) {
-                    uriHandler.openUri(platform.url)
+                    uriHandler.openUri(provider.url)
                 }
             }
         }
@@ -193,7 +183,7 @@ private fun SectionHeader(title: String) {
 }
 
 @Composable
-private fun PlatformItem(
+private fun ProviderItem(
     provider: Provider,
     onClick: () -> Unit,
 ) {
@@ -218,20 +208,16 @@ private fun PlatformItem(
         horizontalArrangement = Arrangement.spacedBy(Constants.SpacerMedium, Alignment.CenterHorizontally)
     ) {
         LoadingAsyncImage(
-            imageUrl = provider.iconUrl,
+            imageUrl = provider.logoUrl,
             contentDescription = provider.name,
             nonImageColor = Colors.Text,
             fallback = painterResource(Res.drawable.ic_image),
             error = painterResource(Res.drawable.ic_image_error),
             alwaysUseColorFilter = true,
+            contentScale = ContentScale.Inside,
             modifier = Modifier
-                .size(30.dp)
-        )
-
-        Text(
-            text = provider.getFormattedName(),
-            fontSize = Constants.FontSizeMedium,
-            color = Colors.Text,
+                .height(40.dp)
+                .fillMaxWidth(0.7f)
         )
     }
 }

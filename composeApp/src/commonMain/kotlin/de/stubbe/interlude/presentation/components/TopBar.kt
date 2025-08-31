@@ -6,7 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontWeight
-import de.stubbe.interlude.ui.theme.Colors
+import de.stubbe.interlude.platform.ui.Colors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

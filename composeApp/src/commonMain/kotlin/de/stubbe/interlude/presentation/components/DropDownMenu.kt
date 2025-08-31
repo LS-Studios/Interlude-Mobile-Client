@@ -18,8 +18,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import de.stubbe.interlude.ui.theme.Colors
-import de.stubbe.interlude.ui.theme.Constants
+import de.stubbe.interlude.platform.ui.Colors
+import de.stubbe.interlude.platform.ui.Constants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

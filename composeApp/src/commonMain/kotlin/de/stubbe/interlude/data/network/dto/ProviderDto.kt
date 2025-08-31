@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class ProviderDto(
     val name: String,
     val url: String,
+    val logoUrl: String,
     val iconUrl: String,
 )

@@ -13,8 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import de.stubbe.interlude.domain.model.Route
 import de.stubbe.interlude.domain.model.TabItem
-import de.stubbe.interlude.ui.theme.Colors
-import de.stubbe.interlude.ui.theme.Constants
+import de.stubbe.interlude.platform.ui.Colors
+import de.stubbe.interlude.platform.ui.Constants
 import interlude.composeapp.generated.resources.Res
 import interlude.composeapp.generated.resources.converter
 import interlude.composeapp.generated.resources.history

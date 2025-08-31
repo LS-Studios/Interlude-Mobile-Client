@@ -2,7 +2,6 @@ package de.stubbe.interlude.presentation.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,24 +11,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import de.stubbe.interlude.domain.model.Language
 import de.stubbe.interlude.domain.model.ThemeMode
+import de.stubbe.interlude.platform.ui.Colors
+import de.stubbe.interlude.platform.ui.Constants
 import de.stubbe.interlude.presentation.components.DropDownMenu
 import de.stubbe.interlude.presentation.viewmodel.SettingsViewModel
-import de.stubbe.interlude.ui.theme.Colors
-import de.stubbe.interlude.ui.theme.Constants
 import de.stubbe.interlude.util.applyLanguage
 import de.stubbe.interlude.util.getPlatformContext
 import dev.burnoo.compose.remembersetting.rememberStringSetting

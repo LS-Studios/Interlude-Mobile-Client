@@ -1,4 +1,4 @@
-package de.stubbe.interlude.ui.theme
+package de.stubbe.interlude.platform.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.text.selection.TextSelectionColors

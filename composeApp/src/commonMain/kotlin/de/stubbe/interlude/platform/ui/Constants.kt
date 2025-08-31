@@ -1,4 +1,4 @@
-package de.stubbe.interlude.ui.theme
+package de.stubbe.interlude.platform.ui
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
@@ -8,7 +8,7 @@ import androidx.compose.ui.unit.TextUnit
 
 object Constants {
 
-    const val BASE_URL = "http://100.99.70.140:8080"
+    const val BASE_URL = "https://interlude.api.leshift.de"
     const val THEME_MODE_KEY = "themeMode"
     const val LANGUAGE_ISO_KEY = "languageIso"
 

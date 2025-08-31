@@ -30,8 +30,9 @@ import androidx.compose.ui.unit.dp
 import de.stubbe.interlude.domain.model.HistoryItem
 import de.stubbe.interlude.presentation.components.LoadingAsyncImage
 import de.stubbe.interlude.presentation.viewmodel.HistoryScreenViewModel
-import de.stubbe.interlude.ui.theme.Colors
-import de.stubbe.interlude.ui.theme.Constants
+import de.stubbe.interlude.platform.ui.Colors
+import de.stubbe.interlude.platform.ui.Constants
+import de.stubbe.interlude.presentation.dialogs.ConvertedLinksDialog
 import interlude.composeapp.generated.resources.Res
 import interlude.composeapp.generated.resources.delete_history
 import interlude.composeapp.generated.resources.delete_history_item
@@ -48,6 +49,8 @@ fun HistoryScreen() {
     val viewModel: HistoryScreenViewModel = koinViewModel()
 
     val history by viewModel.history.collectAsState()
+    val convertedLinksState by viewModel.convertedLinksState.collectAsState()
+    val linkDialogIsOpen by viewModel.linkDialogIsOpen.collectAsState()
 
     val toastBGColor = Colors.Accent
     val toastTextColor = Colors.OnAccent
@@ -76,6 +79,9 @@ fun HistoryScreen() {
         items(history) { historyItem ->
             HistoryRow(
                 historyItem = historyItem,
+                onClick = {
+                    viewModel.openHistoryItem(historyItem)
+                },
                 onDelete = {
                     viewModel.deleteHistoryItem(historyItem)
                     showToast(
@@ -87,6 +93,15 @@ fun HistoryScreen() {
                 }
             )
         }
+    }
+
+    if (linkDialogIsOpen) {
+        ConvertedLinksDialog(
+            convertedLinksState = convertedLinksState,
+            onDismiss =  {
+                viewModel.closeLinkDialog()
+            }
+        )
     }
 }
 

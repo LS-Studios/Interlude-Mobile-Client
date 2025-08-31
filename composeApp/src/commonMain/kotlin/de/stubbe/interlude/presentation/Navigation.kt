@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -13,7 +15,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import de.stubbe.interlude.domain.model.Route
 import de.stubbe.interlude.domain.model.getRouteTabs
-import de.stubbe.interlude.ui.theme.Colors
+import de.stubbe.interlude.platform.ui.Colors
 import de.stubbe.interlude.util.getNavRoute
 import de.stubbe.interlude.presentation.components.BottomBar
 import de.stubbe.interlude.presentation.components.TopBar

@@ -41,31 +41,6 @@ class ShareViewController: UIViewController {
                 self.close()
             }
         }
-        NotificationCenter.default.addObserver(forName: NSNotification.Name("openApp"), object: nil, queue: nil) { notification in
-            DispatchQueue.main.async {
-                if let userInfo = notification.userInfo,
-                   let link = userInfo["link"] as? String {
-                    self.openParentApp(link: link)
-                } else {
-                    self.close()
-                }
-            }
-        }
-    }
-    
-    private func openParentApp(link: String) {
-        if let encodedLink = link.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-           let url = URL(string: "interlude://share?link=\(encodedLink)") {
-
-            var responder: UIResponder? = self
-            while responder != nil {
-                if let application = responder as? UIApplication {
-                    application.open(url)
-                    break
-                }
-                responder = responder?.next
-            }
-        }
     }
     
     private func extractSharedText(completion: @escaping (String?) -> Void) {
