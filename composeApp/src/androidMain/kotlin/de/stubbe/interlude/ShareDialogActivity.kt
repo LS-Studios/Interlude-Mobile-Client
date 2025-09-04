@@ -61,7 +61,15 @@ class ShareDialogActivity : ComponentActivity() {
 
                     LaunchedEffect(sharedText) {
                         if (sharedText != null) {
-                            viewModel.convertLink(sharedText)
+                            val regex = Regex("""https?://[^\s]+""")
+                            val sharedLink = regex.find(sharedText)?.value
+
+                            if (sharedLink == null) {
+                                finish()
+                                return@LaunchedEffect
+                            }
+
+                            viewModel.convertLink(sharedLink)
                         }
                     }
 
