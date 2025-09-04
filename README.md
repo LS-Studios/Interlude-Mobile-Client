@@ -22,34 +22,41 @@ Paste a link to a song or album (from Spotify, Apple Music, YouTube, etc.), and 
 
 ## 🚀 Development Status
 - [x] Core features functional  
-- [ ] Service coverage expansion (more platforms)  
-- [ ] UI/UX improvements  
+- [ ] Service coverage expansion (more platforms)
 
 ---
 
 ## 🖼️ Screenshots
 <!-- Replace with actual paths to your screenshots -->
 <p align="center">
-  <img src="screenshots/screenshot1.png" width="250"/>
-  <img src="screenshots/screenshot2.png" width="250"/>
+  <img src="screenshots/Screenshot-Converter.png" width="250"/>
+  <img src="screenshots/Screenshot-History.png" width="250"/>
+  <img src="screenshots/Screenshot-Share-Dialog.png" width="250"/>
 </p>
 
 ---
 
 ## 🌐 Links
-- [🌍 Official Website]([https://example.com](https://interlude.leshift.de/))  
-- [📖 Backend]([https://example.com/docs](https://github.com/antoniomikley/interlude_server))
+- [🌍 Official Website]([https://interlude.leshift.de/])  
+- [🌍 Website Code]([https://github.com/LS-Studios/Interlude-Web-Client)
+- [📖 Backend Code]([https://github.com/antoniomikley/interlude_server])
 
 ---
 
 ## 🛠️ Technology
-- **Frontend**: Compose Multiplatform (Android & iOS)  
+- **Frontend Mobile**: Compose Multiplatform (Android & iOS)
+- **Frontend Web**: NextJS & TypeScript
 - **Backend**: Rust  
 
 ---
 
 ## 👤 Developer
-- Your Name ([GitHub](https://github.com/yourusername))  
+| Name          | Role                  | GitHub                                        |
+|---------------|-----------------------|-----------------------------------------------|
+| Lennard Stubbe | Frontend Development  | [@LS-Studios](https://github.com/LS-Studios)          |
+| Nick Schefner  | Backend Development   | [@ItsJuzoSuzuya](https://github.com/ItsJuzoSuzuya)      |
+| Antonio Mikley | Backend Development   | [@antoniomikley](https://github.com/antoniomikley) |
+
 
 ---
 
