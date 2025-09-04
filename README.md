@@ -1,31 +1,58 @@
-![Icon](icons/Interlude_Icon.png)
+# 🎵 Interlude
 
-# Interlude
+<!-- App-Icon -->
+<p align="center">
+  <img src="icons/Interlude_Icon.png" alt="App Icon" width="120"/>
+</p>
 
-Interlude is a simple and user-friendly app for converting and sharing music links across different streaming platforms.
+## 📝 Description
+**Interlude** is a simple and user-friendly app for converting and sharing music links across different streaming platforms.  
+Paste a link to a song or album (from Spotify, Apple Music, YouTube, etc.), and Interlude automatically finds and generates matching links for other popular music services.  
 
-## What It Does
+---
 
-Paste a link to a song or album (from Spotify, Apple Music, YouTube, etc.), and Interlude automatically finds and generates matching links for other popular music services.
+## ✨ Key Features
+- *Multi-Platform Support*: Works with Spotify, Apple Music, Tidal, Deezer (and more planned).  
+- *Automatic Conversion*: Paste a single link, get matching links for other platforms.  
+- *Universal Sharing*: Share music without worrying about which app your friends use.  
+- *Cross-Device*: Works smoothly on mobile and desktop browsers.  
+- *Simple UI*: Clean, lightweight, and user-friendly interface.  
 
-## Use Cases
+---
 
-- Share music with friends who use a different platform
-- Avoid sending duplicate links
-- Keep sharing simple, fast, and universal
+## 🚀 Development Status
+- [x] Core features functional  
+- [ ] Service coverage expansion (more platforms)  
+- [ ] UI/UX improvements  
 
-## Features
+---
 
-- Supports multiple services (Spotify, Apple Music, Tidal, Deezer and more are planned)
-- Automatic link matching and conversion
-- Clean and easy-to-use interface
-- Works on mobile and desktop browsers
+## 🖼️ Screenshots
+<!-- Replace with actual paths to your screenshots -->
+<p align="center">
+  <img src="screenshots/screenshot1.png" width="250"/>
+  <img src="screenshots/screenshot2.png" width="250"/>
+</p>
 
-## Status
+---
 
-Currently in development. Core features are functional but still being improved.
+## 🌐 Links
+- [🌍 Official Website]([https://example.com](https://interlude.leshift.de/))  
+- [📖 Backend]([https://example.com/docs](https://github.com/antoniomikley/interlude_server))
 
-## Technology
+---
 
-- Frontend: Compose Mutliplatform (Android and iOS)
-- Backend: Rust
+## 🛠️ Technology
+- **Frontend**: Compose Multiplatform (Android & iOS)  
+- **Backend**: Rust  
+
+---
+
+## 👤 Developer
+- Your Name ([GitHub](https://github.com/yourusername))  
+
+---
+
+## ⚖️ License
+This project is licensed under the **MIT License**.  
+See [LICENSE](LICENSE) for details.
