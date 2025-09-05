@@ -15,7 +15,7 @@ Paste a link to a song or album (from Spotify, Apple Music, YouTube, etc.), and 
 - *Multi-Platform Support*: Works with Spotify, Apple Music, Tidal, Deezer (and more planned).  
 - *Automatic Conversion*: Paste a single link, get matching links for other platforms.  
 - *Universal Sharing*: Share music without worrying about which app your friends use.  
-- *Cross-Device*: Works smoothly on mobile and desktop browsers.  
+- *Cross-Device*: Works smoothly on Android and iOS browsers.  
 - *Simple UI*: Clean, lightweight, and user-friendly interface.  
 
 ---
